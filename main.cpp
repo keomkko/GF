@@ -11,7 +11,7 @@ bool g_bRunning = false; //초기화 제대로 동작했는지 확인하고 게�
 bool init(const char* title, int xpos, int ypos, 
           int height, int width, int flags);
 
-void Update();
+void Update(int &_rep);
 
 void render();
 
@@ -31,22 +31,13 @@ int main(int argc, char* argv[])
     }
 
     srand((unsigned int)time(NULL)); //난수 생성
-    int rep = 1; //반복횟수
+    int rep = 0; //반복횟수
 
     while (g_bRunning)
     {
-        Update();
+        Update(rep);
         render();
         SDL_Delay(1000); //1초 지연
-        if (rep < 5)
-        {
-          g_bRunning = true;
-        }
-        else
-        {
-          g_bRunning = false;
-        }
-        rep++;
     }
 
     SDL_Quit();
@@ -79,9 +70,15 @@ bool init(const char* title, int xpos, int ypos,
     return true;
 }
 
-void Update()
+void Update(int &_rep)
 {
   SDL_SetRenderDrawColor(g_pRenderer, (rand()%2)*255, (rand()%2)*255, (rand()%2)*255, 255);
+  _rep++;
+
+  if(_rep > 5)
+  {
+    g_bRunning = false;
+  }
 }
 
 void render()
