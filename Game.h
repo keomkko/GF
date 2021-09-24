@@ -22,8 +22,14 @@ private:
     SDL_Texture* m_pTexture; 
     SDL_Rect m_sourceRectangle;  //원본
     SDL_Rect m_destinationRectangle; //대상
+    SDL_RendererFlip m_flip;
 
+    SDL_Texture* m_pMario;
+    SDL_Rect m_sRectMario;
+    SDL_Rect m_dRectMario;
+    
     bool m_bRunning;
+    int m_moveSpeed;
 };
 
 #endif

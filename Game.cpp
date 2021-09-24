@@ -8,29 +8,9 @@ bool Game::init(const char *title, int xpos, int ypos,  int width, int height, i
     if (m_pWindow != 0) {
       m_pRenderer = SDL_CreateRenderer(m_pWindow, -1, 0);
       if (m_pRenderer != 0) {
-        SDL_SetRenderDrawColor(m_pRenderer, 255, 255, 255, 255);
+        SDL_SetRenderDrawColor(m_pRenderer, 0, 0, 0, 255);
       } else {
         return false; // 랜더러 생성 실패
-      }
-
-      if(m_pTexture == 0) //Texture 포인트멤버함수에 Bitmap이 로드되지 않았을 경우에만
-      {
-        SDL_Surface* pTempSurface = SDL_LoadBMP("Assets/rider.bmp");
-        m_pTexture = SDL_CreateTextureFromSurface(m_pRenderer, pTempSurface);
-        SDL_FreeSurface(pTempSurface);
-
-        SDL_QueryTexture(m_pTexture, NULL, NULL, 
-        &m_sourceRectangle.w, &m_sourceRectangle.h);
-
-        m_destinationRectangle.w = m_sourceRectangle.w;
-        m_destinationRectangle.h = m_sourceRectangle.h;
-
-        m_sourceRectangle.x = 0;
-        m_sourceRectangle.y = 0; 
-        m_destinationRectangle.x = 700; //초기 위치 설정(대상 사각형)
-        m_destinationRectangle.y = 480;
-      } else {
-      return false;
       }
     } else {
       return false; // 윈도우 생설 실패 l
@@ -39,33 +19,55 @@ bool Game::init(const char *title, int xpos, int ypos,  int width, int height, i
     return false; // SDL 초기화 실패
   }
   
+  //animate.bmp
+  SDL_Surface* pTempSurface = SDL_LoadBMP("Assets/animate.bmp");
+  m_pTexture = SDL_CreateTextureFromSurface(m_pRenderer, pTempSurface);
+  SDL_FreeSurface(pTempSurface);
+
+  m_sourceRectangle.w = 128;
+  m_sourceRectangle.h = 82;
+
+  m_destinationRectangle.w = m_sourceRectangle.w;
+  m_destinationRectangle.h = m_sourceRectangle.h;
+
+  m_sourceRectangle.x = 0;
+  m_sourceRectangle.y = 0;
+  m_destinationRectangle.x = 0;
+  m_destinationRectangle.y = 50; 
+
+  m_flip = SDL_FLIP_NONE;
+  m_moveSpeed = 10;
+
+  //mario.bmp
+  pTempSurface = SDL_LoadBMP("Assets/mario.bmp");
+  m_pMario = SDL_CreateTextureFromSurface(m_pRenderer, pTempSurface);
+  SDL_FreeSurface(pTempSurface);
+
+  SDL_QueryTexture(m_pMario, NULL, NULL, &m_sRectMario.w, &m_sRectMario.h);
+
+  m_dRectMario.w = 200;
+  m_dRectMario.h = 200;
+
+  m_sRectMario.x = m_sRectMario.y = 0;
+  m_dRectMario.x = 300;
+  m_dRectMario.y = 150;
+
   m_bRunning = true;
   return true;
 }
 
 void Game::update()
 {
-  SDL_SetRenderDrawColor(m_pRenderer, 102, 204, 255, 255); //배경 색
-
-  if(m_destinationRectangle.x > 480) //(480, 480)까지 이동
-  {
-    m_destinationRectangle.x--;
-  }
-  else if(m_destinationRectangle.x > 50 && m_destinationRectangle.y > 50) //(50, 50)까지 이동
-  {
-    m_destinationRectangle.x--;
-    m_destinationRectangle.y--;
-  }
-
-  
+  m_sourceRectangle.x = 128*((SDL_GetTicks()/100)%6);
 }
 
 void Game::render()
 {
-  SDL_RenderClear(m_pRenderer); 
-  SDL_RenderCopy(m_pRenderer, m_pTexture, &m_sourceRectangle, &m_destinationRectangle);
+  SDL_RenderClear(m_pRenderer);
+  SDL_RenderCopyEx(m_pRenderer, m_pTexture, &m_sourceRectangle, &m_destinationRectangle, 0 , 0, m_flip);
+  SDL_RenderCopy(m_pRenderer, m_pMario, &m_sRectMario, &m_dRectMario);
   SDL_RenderPresent(m_pRenderer);
-  SDL_Delay(10); 
+  SDL_Delay(10);
 }
 
 bool Game::running()
@@ -81,6 +83,17 @@ void Game::handleEvents()
     case SDL_QUIT:
       m_bRunning = false;
       break;
+    case SDL_KEYDOWN:
+    switch(event.key.keysym.sym){
+      case SDLK_LEFT: //FLIP
+        m_destinationRectangle.x -= m_moveSpeed;
+        m_flip = SDL_FLIP_HORIZONTAL;
+        break;
+      case SDLK_RIGHT:
+        m_destinationRectangle.x += m_moveSpeed;
+        m_flip = SDL_FLIP_NONE;
+        break;
+    }
     default:
       break;
     }
