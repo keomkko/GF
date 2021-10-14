@@ -1,4 +1,5 @@
 #include "Game.h"
+#include "TextureManager.h"
 #include <iostream>
 
 bool Game::init(const char *title, int xpos, int ypos,  int width, int height, int flags) 
@@ -19,38 +20,17 @@ bool Game::init(const char *title, int xpos, int ypos,  int width, int height, i
     return false; // SDL 초기화 실패
   }
   
-  //animate.bmp
-  SDL_Surface* pTempSurface = SDL_LoadBMP("Assets/animate.bmp");
-  m_pTexture = SDL_CreateTextureFromSurface(m_pRenderer, pTempSurface);
-  SDL_FreeSurface(pTempSurface);
+  //animate.png
+  if( !TheTextureManager::Instance()->load("Assets/animate-alpha.png", "animate", m_pRenderer))
+  {
+    return false;
+  }
 
-  m_sourceRectangle.w = 128;
-  m_sourceRectangle.h = 82;
-
-  m_destinationRectangle.w = m_sourceRectangle.w;
-  m_destinationRectangle.h = m_sourceRectangle.h;
-
-  m_sourceRectangle.x = 0;
-  m_sourceRectangle.y = 0;
-  m_destinationRectangle.x = 0;
-  m_destinationRectangle.y = 50; 
-
-  m_flip = SDL_FLIP_NONE;
-  m_moveSpeed = 10;
-
-  //mario.bmp
-  pTempSurface = SDL_LoadBMP("Assets/mario.bmp");
-  m_pMario = SDL_CreateTextureFromSurface(m_pRenderer, pTempSurface);
-  SDL_FreeSurface(pTempSurface);
-
-  SDL_QueryTexture(m_pMario, NULL, NULL, &m_sRectMario.w, &m_sRectMario.h);
-
-  m_dRectMario.w = 200;
-  m_dRectMario.h = 200;
-
-  m_sRectMario.x = m_sRectMario.y = 0;
-  m_dRectMario.x = 300;
-  m_dRectMario.y = 150;
+  //helicopter.png
+  if( !TheTextureManager::Instance()->load("Assets/helicopter.png", "helicopter", m_pRenderer))
+  {
+    return false;
+  }
 
   m_bRunning = true;
   return true;
@@ -58,14 +38,15 @@ bool Game::init(const char *title, int xpos, int ypos,  int width, int height, i
 
 void Game::update()
 {
-  m_sourceRectangle.x = 128*((SDL_GetTicks()/100)%6);
+  m_currentFrame = ((SDL_GetTicks() / 100 ) % 6);
+  m_helicopterFrame = ((SDL_GetTicks() / 100) % 5);
 }
 
 void Game::render()
 {
   SDL_RenderClear(m_pRenderer);
-  SDL_RenderCopyEx(m_pRenderer, m_pTexture, &m_sourceRectangle, &m_destinationRectangle, 0 , 0, m_flip);
-  SDL_RenderCopy(m_pRenderer, m_pMario, &m_sRectMario, &m_dRectMario);
+  TheTextureManager::Instance()->drawFrame("helicopter", 200, 200, 128, 82, 0, m_helicopterFrame, m_pRenderer, SDL_FLIP_HORIZONTAL);
+  TheTextureManager::Instance()->drawFrame("animate", 100, 100, 128, 82, 0, m_currentFrame, m_pRenderer);
   SDL_RenderPresent(m_pRenderer);
   SDL_Delay(10);
 }
@@ -83,17 +64,17 @@ void Game::handleEvents()
     case SDL_QUIT:
       m_bRunning = false;
       break;
-    case SDL_KEYDOWN:
-    switch(event.key.keysym.sym){
-      case SDLK_LEFT: //FLIP
-        m_destinationRectangle.x -= m_moveSpeed;
-        m_flip = SDL_FLIP_HORIZONTAL;
-        break;
-      case SDLK_RIGHT:
-        m_destinationRectangle.x += m_moveSpeed;
-        m_flip = SDL_FLIP_NONE;
-        break;
-    }
+    // case SDL_KEYDOWN:
+    // switch(event.key.keysym.sym){
+    //   case SDLK_LEFT: //FLIP
+    //     m_destinationRectangle.x -= m_moveSpeed;
+    //     m_flip = SDL_FLIP_HORIZONTAL;
+    //     break;
+    //   case SDLK_RIGHT:
+    //     m_destinationRectangle.x += m_moveSpeed;
+    //     m_flip = SDL_FLIP_NONE;
+    //     break;
+    // }
     default:
       break;
     }
